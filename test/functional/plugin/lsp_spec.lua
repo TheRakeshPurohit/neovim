@@ -256,7 +256,7 @@ describe('LSP', function()
             fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -283,7 +283,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -308,7 +308,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(err, method, params, client_id)
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'start' then
             exec_lua([=[
               local client = vim.lsp.get_client_by_id(TEST_RPC_CLIENT_ID)
@@ -362,7 +362,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -396,7 +396,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -412,7 +412,7 @@ describe('LSP', function()
               BUFFER = vim.api.nvim_get_current_buf()
               lsp.buf_attach_client(BUFFER, TEST_RPC_CLIENT_ID)
               vim.lsp.handlers['textDocument/typeDefinition'] = function(err, method)
-                vim.lsp._last_lsp_callback = { err = err; method = method }
+                vim.lsp._last_lsp_handler = { err = err; method = method }
               end
               vim.lsp._unsupported_method = function(method)
                 vim.lsp._last_unsupported_method = method
@@ -425,7 +425,7 @@ describe('LSP', function()
           client.stop()
           local method = exec_lua("return vim.lsp._last_unsupported_method")
           eq("textDocument/typeDefinition", method)
-          local lsp_cb_call = exec_lua("return vim.lsp._last_lsp_callback")
+          local lsp_cb_call = exec_lua("return vim.lsp._last_lsp_handler")
           eq("fake-error", lsp_cb_call.err)
           eq("textDocument/typeDefinition", lsp_cb_call.method)
           exec_lua [[
@@ -437,7 +437,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -451,7 +451,7 @@ describe('LSP', function()
         on_setup = function()
             exec_lua([=[
               vim.lsp.handlers['textDocument/typeDefinition'] = function(err, method)
-                vim.lsp._last_lsp_callback = { err = err; method = method }
+                vim.lsp._last_lsp_handler = { err = err; method = method }
               end
               vim.lsp._unsupported_method = function(method)
                 vim.lsp._last_unsupported_method = method
@@ -463,14 +463,14 @@ describe('LSP', function()
         on_init = function(client)
           client.stop()
           eq(NIL, exec_lua("return vim.lsp._last_unsupported_method"))
-          eq(NIL, exec_lua("return vim.lsp._last_lsp_callback"))
+          eq(NIL, exec_lua("return vim.lsp._last_lsp_handler"))
         end;
         on_exit = function(code, signal)
           eq(0, code, "exit code", fake_lsp_logfile)
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(...)
-          eq(table.remove(expected_handlers), {...}, "expected callback")
+          eq(table.remove(expected_handlers), {...}, "expected handler")
         end;
       }
     end)
@@ -510,7 +510,7 @@ describe('LSP', function()
           eq(0, signal, "exit signal", fake_lsp_logfile)
         end;
         on_handler = function(err, method, params, client_id)
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -556,7 +556,7 @@ describe('LSP', function()
           if method == 'start' then
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -599,7 +599,7 @@ describe('LSP', function()
           if method == 'start' then
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -647,7 +647,7 @@ describe('LSP', function()
             ]]
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -696,7 +696,7 @@ describe('LSP', function()
             ]]
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -745,7 +745,7 @@ describe('LSP', function()
             ]]
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -790,7 +790,7 @@ describe('LSP', function()
             helpers.command("normal! 1Go")
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -841,7 +841,7 @@ describe('LSP', function()
             ]]
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -893,7 +893,7 @@ describe('LSP', function()
             ]]
             client.notify('finish')
           end
-          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected callback")
+          eq(table.remove(expected_handlers), {err, method, params, client_id}, "expected handler")
           if method == 'finish' then
             client.stop()
           end
@@ -1147,14 +1147,14 @@ describe('LSP', function()
           make_edit(0, 0, 0, 3, "First ↥ 🤦 🦄")
         },
         textDocument = {
-          uri = "file://fake/uri";
+          uri = "file:///fake/uri";
           version = editVersion
         }
       }
     end
     before_each(function()
       target_bufnr = exec_lua [[
-        local bufnr = vim.uri_to_bufnr("file://fake/uri")
+        local bufnr = vim.uri_to_bufnr("file:///fake/uri")
         local lines = {"1st line of text", "2nd line of 语text"}
         vim.api.nvim_buf_set_lines(bufnr, 0, 1, false, lines)
         return bufnr
@@ -1234,7 +1234,7 @@ describe('LSP', function()
           make_edit(row, 0, row, 1000, new_line)
         },
         textDocument = {
-          uri = "file://fake/uri";
+          uri = "file:///fake/uri";
           version = editVersion
         }
       }
@@ -1252,7 +1252,7 @@ describe('LSP', function()
 
     before_each(function()
       local ret = exec_lua [[
-        local bufnr = vim.uri_to_bufnr("file://fake/uri")
+        local bufnr = vim.uri_to_bufnr("file:///fake/uri")
         local lines = {
           "Original Line #1",
           "Original Line #2"
@@ -1532,19 +1532,19 @@ describe('LSP', function()
     it('Convert Location[] to items', function()
       local expected = {
         {
-          filename = 'fake/uri',
+          filename = '/fake/uri',
           lnum = 1,
           col = 3,
           text = 'testing'
         },
       }
       local actual = exec_lua [[
-        local bufnr = vim.uri_to_bufnr("file://fake/uri")
+        local bufnr = vim.uri_to_bufnr("file:///fake/uri")
         local lines = {"testing", "123"}
         vim.api.nvim_buf_set_lines(bufnr, 0, 1, false, lines)
         local locations = {
           {
-            uri = 'file://fake/uri',
+            uri = 'file:///fake/uri',
             range = {
               start = { line = 0, character = 2 },
               ['end'] = { line = 0, character = 3 },
@@ -1558,14 +1558,14 @@ describe('LSP', function()
     it('Convert LocationLink[] to items', function()
       local expected = {
         {
-          filename = 'fake/uri',
+          filename = '/fake/uri',
           lnum = 1,
           col = 3,
           text = 'testing'
         },
       }
       local actual = exec_lua [[
-        local bufnr = vim.uri_to_bufnr("file://fake/uri")
+        local bufnr = vim.uri_to_bufnr("file:///fake/uri")
         local lines = {"testing", "123"}
         vim.api.nvim_buf_set_lines(bufnr, 0, 1, false, lines)
         local locations = {
@@ -1779,14 +1779,14 @@ describe('LSP', function()
         local expected = {
           {
             col = 1,
-            filename = 'test_a',
+            filename = '/test_a',
             kind = 'File',
             lnum = 2,
             text = '[File] TestA'
           },
           {
             col = 1,
-            filename = 'test_b',
+            filename = '/test_b',
             kind = 'Module',
             lnum = 4,
             text = '[Module] TestB'
@@ -1809,7 +1809,7 @@ describe('LSP', function()
                     line = 2
                   }
                 },
-                uri = "file://test_a"
+                uri = "file:///test_a"
               },
               contanerName = "TestAContainer"
             },
@@ -1828,7 +1828,7 @@ describe('LSP', function()
                     line = 4
                   }
                 },
-                uri = "file://test_b"
+                uri = "file:///test_b"
               },
               contanerName = "TestBContainer"
             }
@@ -1867,7 +1867,7 @@ describe('LSP', function()
 
     before_each(function()
       target_bufnr = exec_lua [[
-        local bufnr = vim.uri_to_bufnr("file://fake/uri")
+        local bufnr = vim.uri_to_bufnr("file:///fake/uri")
         local lines = {"1st line of text", "å å ɧ 汉语 ↥ 🤦 🦄"}
         vim.api.nvim_buf_set_lines(bufnr, 0, 1, false, lines)
         return bufnr
@@ -1876,7 +1876,7 @@ describe('LSP', function()
 
     local location = function(start_line, start_char, end_line, end_char)
       return {
-        uri = "file://fake/uri",
+        uri = "file:///fake/uri",
         range = {
           start = { line = start_line, character = start_char },
           ["end"] = { line = end_line, character = end_char },
@@ -1901,7 +1901,7 @@ describe('LSP', function()
 
     it('jumps to a LocationLink', function()
       local pos = jump({
-          targetUri = "file://fake/uri",
+          targetUri = "file:///fake/uri",
           targetSelectionRange = {
             start = { line = 0, character = 4 },
             ["end"] = { line = 0, character = 4 },

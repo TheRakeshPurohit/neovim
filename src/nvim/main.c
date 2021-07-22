@@ -7,8 +7,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include <lua.h>
-#include <lauxlib.h>
 #include <msgpack.h>
 
 #include "nvim/ascii.h"
@@ -258,6 +256,8 @@ int main(int argc, char **argv)
   // Check if we have an interactive window.
   check_and_set_isatty(&params);
 
+  nlua_init();
+
   // Process the command line arguments.  File names are put in the global
   // argument list "global_alist".
   command_line_scan(&params);
@@ -341,7 +341,6 @@ int main(int argc, char **argv)
     TIME_MSG("initialized screen early for UI");
   }
 
-
   // open terminals when opening files that start with term://
 #define PROTO "term://"
   do_cmdline_cmd("augroup nvim_terminal");
@@ -367,11 +366,19 @@ int main(int argc, char **argv)
   // Execute --cmd arguments.
   exe_pre_commands(&params);
 
+  // If using the runtime (-u is not NONE), enable syntax & filetype plugins.
+  bool enable_syntax =
+    (params.use_vimrc == NULL || !strequal(params.use_vimrc, "NONE"));
+
+  // Source syncolor.vim to set up default UI highlights
+  if (enable_syntax) {
+    source_runtime((char_u *)"syntax/syncolor.vim", DIP_ALL);
+  }
+
   // Source startup scripts.
   source_startup_scripts(&params);
 
-  // If using the runtime (-u is not NONE), enable syntax & filetype plugins.
-  if (params.use_vimrc == NULL || !strequal(params.use_vimrc, "NONE")) {
+  if (enable_syntax) {
     // Does ":filetype plugin indent on".
     filetype_maybe_enable();
     // Sources syntax/syntax.vim, which calls `:filetype on`.
@@ -1444,11 +1451,9 @@ static void read_stdin(void)
   no_wait_return = true;
   int save_msg_didany = msg_didany;
   set_buflisted(true);
-
   // Create memfile and read from stdin.
   (void)open_buffer(true, NULL, 0);
-
-  if (BUFEMPTY() && curbuf->b_next != NULL) {
+  if (buf_is_empty(curbuf) && curbuf->b_next != NULL) {
     // stdin was empty, go to buffer 2 (e.g. "echo file1 | xargs nvim"). #8561
     do_cmdline_cmd("silent! bnext");
     // Delete the empty stdin buffer.
@@ -1816,7 +1821,8 @@ static bool do_user_initialization(void)
     char_u *vimrc_path = (char_u *)stdpaths_user_conf_subpath("init.vim");
 
     if (os_path_exists(vimrc_path)) {
-      EMSG3(_("Conflicting configs: \"%s\" \"%s\""), init_lua_path, vimrc_path);
+      EMSG3(_("E5422: Conflicting configs: \"%s\" \"%s\""), init_lua_path,
+            vimrc_path);
     }
 
     xfree(vimrc_path);
